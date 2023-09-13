@@ -1,24 +1,18 @@
 from django.db import models
-# Create your models here.
 
-from . import sandbox
-gen_code = sandbox.gen_code()
+
+# Create your models here.
 
 
 class MissingPerson(models.Model):
     name = models.CharField(max_length=80, null=False)
-    code = models.CharField(default=gen_code,max_length=20)
-    matched = models.BooleanField(default=False)
-    age = models.IntegerField(null=False)
-    location = models.CharField(max_length=100,default="Nairobi")
-    reported_at = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=500)
+    age = models.IntegerField(null=False, default=23)
+    location = models.CharField(max_length=100, default="Nairobi")
+    description = models.CharField(max_length=1000,null=False,default="Tall")
 
 
 class ReportedSeenPerson(models.Model):
     name = models.CharField(max_length=80, null=False)
+    age = models.IntegerField(null=False, default=10)
+    description = models.CharField(max_length=1000,null=False,default="Tall")
     matched = models.BooleanField(default=False)
-    age = models.IntegerField(null=True)
-    location = models.CharField(max_length=100,default="Nairobi")
-    reported_at = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=500)

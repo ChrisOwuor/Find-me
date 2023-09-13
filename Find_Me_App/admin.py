@@ -7,11 +7,11 @@ from .models import MissingPerson,ReportedSeenPerson
 
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ("id","name", "code", "matched", "age", "reported_at", "description","location")
+    list_display = ("id","name","age", "location","description")
 
 
 class FoundPersonAdmin(admin.ModelAdmin):
-    list_display = ("name",  "matched", "age", "reported_at", "description","location")
+    list_display = ("id","name",  "age","description","matched")
 
 
 # Register your models here.
