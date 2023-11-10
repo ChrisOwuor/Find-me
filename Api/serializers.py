@@ -11,7 +11,7 @@ from .models import MissingPerson
 class MissingPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = MissingPerson
-        fields = ['created_by', 'trackCode', 'first_name', 'middle_name', 'last_name', 'nick_name', 'county', 'last_seen', 'eye_color', 'hair_color', 'age', 'location', 'description', 'image', 'gender', 'created_at', 'updated_at']
+        fields = ['id','created_by', 'trackCode', 'first_name', 'middle_name', 'last_name', 'nick_name', 'county', 'last_seen', 'eye_color', 'hair_color', 'age', 'location', 'description', 'image', 'gender', 'created_at', 'updated_at']
 
     def create(self, validated_data):
         # Generate a unique trackCode
@@ -31,4 +31,4 @@ class MissingPersonSerializer(serializers.ModelSerializer):
 class ReportedSeenPersonSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReportedSeenPerson
-        fields = ['created_by', 'first_name', 'middle_name', 'county', 'last_seen', 'eye_color', 'hair_color', 'age', 'location', 'description', 'image', 'gender', 'created_at', 'updated_at']
+        fields = ['id','created_by', 'first_name', 'middle_name', 'county', 'last_seen', 'eye_color', 'hair_color', 'age', 'location', 'description', 'image', 'gender', 'created_at', 'updated_at']

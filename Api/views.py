@@ -1,4 +1,3 @@
-# Create your views here.
 
 
 from django.shortcuts import render  # Import json module
@@ -13,19 +12,13 @@ from .models import ReportedSeenPerson
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
+# view to render react frontend
+
 
 def catch_all(request):
     return render(request, "index.html")
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def Profile(request):
-    if request.method == 'GET':
-        persons = MissingPerson.objects.filter(user_name=request.user)
-        serializer = MissingPersonSerializer(persons, many=True)
-
-        return Response(serializer.data)
 
 
 # view to get all  missing persons
@@ -48,12 +41,50 @@ def Missing(request):
 
         return Response(serialized_data)
 
-# view to serve a single missing person using the trackCode
+
+# view to get all  found persons
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def Found(request):
+    if request.method == "GET":
+        # view to get all  missing persons
+        persons = ReportedSeenPerson.objects.all()
+
+        # Create a list to store serialized data with user names
+        serialized_data = []
+
+        for person in persons:
+            data = ReportedSeenPersonSerializer(person).data
+            # Replace 'user_name' with the actual field name for the user's name
+            data['created_by'] = person.created_by.user_name
+            serialized_data.append(data)
+
+        return Response(serialized_data)
+# view to serve a single seen person using the id
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def Details(request, trackCode):
+def Seen_Details(request, id):
+    if request.method == 'GET':
+        # Filter missing persons by the currently authenticated user
+        persons = ReportedSeenPerson.objects.filter(id = id )
+
+        # Create a list to store serialized data with user names
+        serialized_data = []
+
+        for person in persons:
+            data = ReportedSeenPersonSerializer(person).data
+            # Replace 'user_name' with the actual field name for the user's name
+            data['created_by'] = person.created_by.user_name
+            serialized_data.append(data)
+
+        return Response(serialized_data)
+
+# view to serve a single missing person using the trackCode
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def Missing_Details(request, trackCode):
     if request.method == 'GET':
         # Filter missing persons by the currently authenticated user
         persons = MissingPerson.objects.filter(trackCode=trackCode)
@@ -78,9 +109,11 @@ def Details(request, trackCode):
 def Find(request, pid):
 
     if request.method == "GET":
+        data =[]
         # Retrieve the MissingPerson instance by trackCode
         person = MissingPerson.objects.get(trackCode=pid)
         serializer = MissingPersonSerializer(person)
+        data.append(serializer.data)
 
         # Load the image and encode the face
         img_path = "." + serializer.data["image"]
@@ -106,12 +139,13 @@ def Find(request, pid):
                     image_encodings[0], fimage_encodings)
                 if results[0]:
                     matches.append({"name": found_person["first_name"],
+                                    "image": found_person["image"],
                                    "age": found_person["age"]})
                 print(results)
 
                 # Append the result to the matches list
 
-        return Response(matches)
+        return Response({"matches":matches , "mps":data})
 
 
 # view to report a missing person to reported seen persons db
@@ -137,26 +171,3 @@ def Add_Person(request):
         if serializer.is_valid():
 
             return Response(serializer.data, status=201)
-
-    else:
-        print('error', MissingPersonSerializer.errors)
-        return Response(MissingPersonSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

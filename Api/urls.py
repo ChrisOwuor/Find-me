@@ -6,11 +6,12 @@ app_name = "Api"
 
 urlpatterns = [
     path("api/missing-person/", views.Missing, name="missing"),
+    path("api/found-person/", views.Found, name="found"),
     path("api/find-person/<str:pid>", views.Find, name="find"),
     path("api/add-missing/", views.Add_Person, name="add-missing"),
     path("api/report-person/", views.Report_Person, name="report-person"),
-    path("api/details/<str:trackCode>", views.Details, name="details"),
-    path("api/profile/", views.Profile, name="profile"),
+    path("api/missing/details/<str:trackCode>", views.Missing_Details, name="details"),
+    path("api/seen/details/<int:id>", views.Seen_Details, name="sdetails"),
     re_path(r'^.*/?$', views.catch_all),
 
 
