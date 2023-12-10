@@ -1,6 +1,7 @@
 
 
-from django.shortcuts import render  # Import json module
+from rest_framework.decorators import api_view, permission_classes
+from django.shortcuts import render
 from .models import MissingPerson, ReportedSeenPerson
 import face_recognition
 from rest_framework import status
@@ -19,23 +20,19 @@ def catch_all(request):
     return render(request, "index.html")
 
 
-
-
 # view to get all  missing persons
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Missing(request):
     if request.method == 'GET':
-        # Filter missing persons by the currently authenticated user
-        # persons = MissingPerson.objects.filter(created_by=request.user)
+
         persons = MissingPerson.objects.all()
 
-        # Create a list to store serialized data with user names
         serialized_data = []
 
         for person in persons:
             data = MissingPersonSerializer(person).data
-            # Replace 'user_name' with the actual field name for the user's name
+
             data['created_by'] = person.created_by.user_name
             serialized_data.append(data)
 
@@ -47,15 +44,14 @@ def Missing(request):
 @permission_classes([IsAuthenticated])
 def Found(request):
     if request.method == "GET":
-        # view to get all  missing persons
+
         persons = ReportedSeenPerson.objects.all()
 
-        # Create a list to store serialized data with user names
         serialized_data = []
 
         for person in persons:
             data = ReportedSeenPersonSerializer(person).data
-            # Replace 'user_name' with the actual field name for the user's name
+
             data['created_by'] = person.created_by.user_name
             serialized_data.append(data)
 
@@ -67,34 +63,34 @@ def Found(request):
 @permission_classes([IsAuthenticated])
 def Seen_Details(request, id):
     if request.method == 'GET':
-        # Filter missing persons by the currently authenticated user
-        persons = ReportedSeenPerson.objects.filter(id = id )
 
-        # Create a list to store serialized data with user names
+        persons = ReportedSeenPerson.objects.filter(id=id)
+
         serialized_data = []
 
         for person in persons:
             data = ReportedSeenPersonSerializer(person).data
-            # Replace 'user_name' with the actual field name for the user's name
+
             data['created_by'] = person.created_by.user_name
             serialized_data.append(data)
 
         return Response(serialized_data)
 
 # view to serve a single missing person using the trackCode
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Missing_Details(request, trackCode):
     if request.method == 'GET':
-        # Filter missing persons by the currently authenticated user
+
         persons = MissingPerson.objects.filter(trackCode=trackCode)
 
-        # Create a list to store serialized data with user names
         serialized_data = []
 
         for person in persons:
             data = MissingPersonSerializer(person).data
-            # Replace 'user_name' with the actual field name for the user's name
+
             data['created_by'] = person.created_by.user_name
             serialized_data.append(data)
 
@@ -109,8 +105,8 @@ def Missing_Details(request, trackCode):
 def Find(request, pid):
 
     if request.method == "GET":
-        data =[]
-        # Retrieve the MissingPerson instance by trackCode
+        data = []
+
         person = MissingPerson.objects.get(trackCode=pid)
         serializer = MissingPersonSerializer(person)
         data.append(serializer.data)
@@ -120,7 +116,6 @@ def Find(request, pid):
         image = face_recognition.load_image_file(img_path)
         image_encodings = face_recognition.face_encodings(image)
 
-        # Retrieve and filter the ReportedSeenPerson instances (adjust the filter criteria)
         found_persons = ReportedSeenPerson.objects.all()
         serializer = ReportedSeenPersonSerializer(found_persons, many=True)
         found_persons_array = serializer.data
@@ -132,20 +127,58 @@ def Find(request, pid):
             fimage = face_recognition.load_image_file(fimg_path)
             fimage_encodings = face_recognition.face_encodings(fimage)
 
-            # Check if there are any face encodings in the list
             if len(fimage_encodings) > 0:
-                # Compare the encodings using compare_faces
+
                 results = face_recognition.compare_faces(
                     image_encodings[0], fimage_encodings)
                 if results[0]:
                     matches.append({"name": found_person["first_name"],
+                                    "id": found_person["id"],
                                     "image": found_person["image"],
                                    "age": found_person["age"]})
                 print(results)
 
-                # Append the result to the matches list
+        return Response({"matches": matches, "mps": data})
 
-        return Response({"matches":matches , "mps":data})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def Find(request, pid):
+
+    if request.method == "GET":
+        data = []
+
+        person = MissingPerson.objects.get(trackCode=pid)
+        serializer = MissingPersonSerializer(person)
+        data.append(serializer.data)
+
+        img_path = "." + serializer.data["image"]
+        image = face_recognition.load_image_file(img_path)
+        image_encodings = face_recognition.face_encodings(image)
+
+        found_persons = ReportedSeenPerson.objects.all()
+        serializer = ReportedSeenPersonSerializer(found_persons, many=True)
+        found_persons_array = serializer.data
+
+        matches = []
+
+        for found_person in found_persons_array:
+            fimg_path = "." + found_person["image"]
+            fimage = face_recognition.load_image_file(fimg_path)
+            fimage_encodings = face_recognition.face_encodings(fimage)
+
+            if len(fimage_encodings) > 0:
+
+                results = face_recognition.compare_faces(
+                    image_encodings[0], fimage_encodings)
+                if results[0]:
+                    matches.append({"name": found_person["first_name"],
+                                    "id": found_person["id"],
+                                    "image": found_person["image"],
+                                   "age": found_person["age"]})
+                print(results)
+
+        return Response({"matches": matches, "mps": data})
 
 
 # view to report a missing person to reported seen persons db
@@ -169,5 +202,5 @@ def Add_Person(request):
         request.data['created_by'] = request.user.id
         serializer = MissingPersonSerializer(data=request.data)
         if serializer.is_valid():
-
+            serializer.save()
             return Response(serializer.data, status=201)

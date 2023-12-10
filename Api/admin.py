@@ -39,7 +39,7 @@ class FoundPersonAdmin(admin.ModelAdmin):
                     "updated_at")
 
 
-# Register your models here.
+
 
 admin.site.register(MissingPerson, PersonAdmin)
 admin.site.register(ReportedSeenPerson, FoundPersonAdmin)
