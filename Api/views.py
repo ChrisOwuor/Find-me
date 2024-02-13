@@ -2,14 +2,13 @@
 
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import render
-from .models import MissingPerson, ReportedSeenPerson
+from .models import MissingPerson, FoundPerson
 import face_recognition
-from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
 from .serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
 from .models import MissingPerson
-from .models import ReportedSeenPerson
+from .models import FoundPerson
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
@@ -45,7 +44,7 @@ def Missing(request):
 def Found(request):
     if request.method == "GET":
 
-        persons = ReportedSeenPerson.objects.all()
+        persons = FoundPerson.objects.all()
 
         serialized_data = []
 
@@ -56,15 +55,15 @@ def Found(request):
             serialized_data.append(data)
 
         return Response(serialized_data)
+
+
 # view to serve a single seen person using the id
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Seen_Details(request, id):
     if request.method == 'GET':
 
-        persons = ReportedSeenPerson.objects.filter(id=id)
+        persons = FoundPerson.objects.filter(id=id)
 
         serialized_data = []
 
@@ -98,49 +97,6 @@ def Missing_Details(request, trackCode):
 # send a post request with the id and response include not found or found including pic name location
 
 # view to do the facial recognition part
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def Find(request, pid):
-
-    if request.method == "GET":
-        data = []
-
-        person = MissingPerson.objects.get(trackCode=pid)
-        serializer = MissingPersonSerializer(person)
-        data.append(serializer.data)
-
-        # Load the image and encode the face
-        img_path = "." + serializer.data["image"]
-        image = face_recognition.load_image_file(img_path)
-        image_encodings = face_recognition.face_encodings(image)
-
-        found_persons = ReportedSeenPerson.objects.all()
-        serializer = ReportedSeenPersonSerializer(found_persons, many=True)
-        found_persons_array = serializer.data
-
-        matches = []
-
-        for found_person in found_persons_array:
-            fimg_path = "." + found_person["image"]
-            fimage = face_recognition.load_image_file(fimg_path)
-            fimage_encodings = face_recognition.face_encodings(fimage)
-
-            if len(fimage_encodings) > 0:
-
-                results = face_recognition.compare_faces(
-                    image_encodings[0], fimage_encodings)
-                if results[0]:
-                    matches.append({"name": found_person["first_name"],
-                                    "id": found_person["id"],
-                                    "image": found_person["image"],
-                                   "age": found_person["age"]})
-                print(results)
-
-        return Response({"matches": matches, "mps": data})
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Find(request, pid):
@@ -156,7 +112,7 @@ def Find(request, pid):
         image = face_recognition.load_image_file(img_path)
         image_encodings = face_recognition.face_encodings(image)
 
-        found_persons = ReportedSeenPerson.objects.all()
+        found_persons = FoundPerson.objects.all()
         serializer = ReportedSeenPersonSerializer(found_persons, many=True)
         found_persons_array = serializer.data
 
