@@ -1,14 +1,14 @@
 
 # Register your models here.
 from django.contrib import admin
-from Users.models import NewUser
+from Users.models import User
 from django.contrib.auth.admin import UserAdmin
 from django.forms import Textarea
 from django.db import models
 
 
 class UserAdminConfig(UserAdmin):
-    model = NewUser
+    model = User
     search_fields = ('email', 'user_name', )
     list_filter = ("id", 'email', 'user_name',  'is_active', 'is_staff')
     ordering = ('-start_date',)
@@ -30,4 +30,4 @@ class UserAdminConfig(UserAdmin):
     )
 
 
-admin.site.register(NewUser, UserAdminConfig)
+admin.site.register(User, UserAdminConfig)

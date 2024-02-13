@@ -9,8 +9,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view,  permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import NewUser
-from Api.models import MissingPerson, ReportedSeenPerson
+from .models import User
+from Api.models import MissingPerson, FoundPerson
 from Api.serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
 
 
@@ -67,9 +67,9 @@ class BlacklistTokenUpdateView(APIView):
 @api_view(['GET'])
 def Profile(request):
     if request.method == 'GET':
-        persons = NewUser.objects.filter(user_name=request.user)
+        persons = User.objects.filter(user_name=request.user)
         codes = MissingPerson.objects.filter(created_by=request.user)
-        codes2 = ReportedSeenPerson.objects.filter(created_by=request.user)
+        codes2 = FoundPerson.objects.filter(created_by=request.user)
         serializer2 = ReportedSeenPersonSerializer(codes2, many=True)
         serializer = CustomUserSerializer(persons, many=True)
         codeserialiser = MissingPersonSerializer(codes, many=True)

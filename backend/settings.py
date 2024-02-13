@@ -151,7 +151,7 @@ REST_FRAMEWORK = {
 }
 
 
-AUTH_USER_MODEL = "Users.NewUser"
+AUTH_USER_MODEL = "Users.User"
 
 
 SIMPLE_JWT = {

@@ -1,8 +1,9 @@
 
 # Register your models here.
 
+from django.contrib.auth.models import Group
 from django.contrib import admin
-from .models import MissingPerson, ReportedSeenPerson
+from .models import MissingPerson, FoundPerson
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -16,7 +17,6 @@ class PersonAdmin(admin.ModelAdmin):
                     "hair_color",
                     "age",
                     "location",
-                    "description",
                     "image",
                     "gender",
                     "created_at",
@@ -33,7 +33,6 @@ class FoundPersonAdmin(admin.ModelAdmin):
                     "hair_color",
                     "age",
                     "location",
-                    "description",
                     "image",
                     "gender", "created_at",
                     "updated_at")
@@ -42,4 +41,7 @@ class FoundPersonAdmin(admin.ModelAdmin):
 
 
 admin.site.register(MissingPerson, PersonAdmin)
-admin.site.register(ReportedSeenPerson, FoundPersonAdmin)
+admin.site.register(FoundPerson, FoundPersonAdmin)
+
+# Deregister the Group model from the admin site
+admin.site.unregister(Group)
