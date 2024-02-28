@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,7 +9,6 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.decorators import api_view,  permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from .models import User
 from Api.models import MissingPerson, FoundPerson
 from Api.serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
@@ -73,7 +73,24 @@ def Profile(request):
         serializer2 = ReportedSeenPersonSerializer(codes2, many=True)
         serializer = CustomUserSerializer(persons, many=True)
         codeserialiser = MissingPersonSerializer(codes, many=True)
-        print(serializer.data)
-        print(codeserialiser.data)
 
         return Response({"person": serializer.data, "codes": codeserialiser.data, "codes2": serializer2.data})
+
+
+class Fogortpaswd(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email", "")
+        if not email:
+            return Response({"msg": "No email entered"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"msg": "No user found with the provided email"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CustomUserSerializer(user).data
+        return Response({"user": serializer})
+
+
