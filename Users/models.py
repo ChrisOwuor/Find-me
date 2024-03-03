@@ -28,7 +28,7 @@ class CustomAccountManager(BaseUserManager):
 
         email = self.normalize_email(email)
         user = self.model(email=email, user_name=user_name,
-                           **other_fields)
+                          **other_fields)
         user.set_password(password)
         user.save()
         return user
@@ -50,6 +50,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.user_name
 
 
-
-
-
+class Otp(models.model):
+    created_for = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True)
+    valid = models.BooleanField(default=True)
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_to = models.DateTimeField(default=timezone.now)
