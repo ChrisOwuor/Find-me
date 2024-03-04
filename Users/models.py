@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+import random
 
 
 class CustomAccountManager(BaseUserManager):
@@ -53,6 +54,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Otp(models.model):
     created_for = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True)
+    code = models.CharField(max_length=7)
     valid = models.BooleanField(default=True)
     valid_from = models.DateTimeField(default=timezone.now)
     valid_to = models.DateTimeField(default=timezone.now)
+
+    def getCode(self):
+        return random.randint
+    
+    
+    
