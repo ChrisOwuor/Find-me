@@ -105,7 +105,7 @@ class Fogortpaswd(APIView):
         return Response({"code": otp_serializer["code"]})
 
 
-class ChangePass(APIView):
+class VerifyOtp(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -128,3 +128,12 @@ class ChangePass(APIView):
             return Response({"msg": "Valid OTP. You can proceed with password change."})
         else:
             return Response({"msg": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePasskey(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        passkey = request.data.get("pass", "")
+        
+        user = CustomUserSerializer(data=passkey)
