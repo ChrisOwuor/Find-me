@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 import random
+from django.conf import settings
 
 
 class CustomAccountManager(BaseUserManager):
@@ -51,16 +52,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.user_name
 
 
-class Otp(models.model):
+class Otp(models.Model):
     created_for = models.ForeignKey(
         User, on_delete=models.CASCADE, null=True)
     code = models.CharField(max_length=7)
-    valid = models.BooleanField(default=True)
-    valid_from = models.DateTimeField(default=timezone.now)
-    valid_to = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
+    token = 12345
 
-    def getCode(self):
-        return random.randint
-    
-    
-    
+    def is_valid(self):
+        """get 10 mins otp"""
+        otp_time_sec = float(settings.OTP_EXPIRE_TIME * 60)
+        current_time = timezone.now()
+        time_diff = current_time - self.created_at
+
+        return time_diff.total_seconds() <= otp_time_sec
+
+    @classmethod
+    def get_code(cls):
+        return cls.token

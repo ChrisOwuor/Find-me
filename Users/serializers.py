@@ -1,3 +1,4 @@
+from .models import Otp
 from rest_framework import serializers
 from Users.models import User
 
@@ -22,3 +23,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+    from rest_framework import serializers
+
+
+class OtpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Otp
+        fields = ['id', 'created_for', 'code', 'created_at']
