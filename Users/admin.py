@@ -1,5 +1,6 @@
 
 # Register your models here.
+from .models import Otp
 from django.contrib import admin
 from Users.models import User
 from django.contrib.auth.admin import UserAdmin
@@ -31,3 +32,11 @@ class UserAdminConfig(UserAdmin):
 
 
 admin.site.register(User, UserAdminConfig)
+
+
+class OtpAdmin(admin.ModelAdmin):
+    list_display = ('created_for', 'code', 'created_at')
+    search_fields = ['created_for__email', 'code']
+
+
+admin.site.register(Otp, OtpAdmin)

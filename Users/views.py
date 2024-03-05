@@ -3,13 +3,13 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import CustomUserSerializer
+from .serializers import CustomUserSerializer, OtpSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.decorators import api_view,  permission_classes
 from rest_framework.response import Response
-from .models import User
+from .models import Otp, User
 from Api.models import MissingPerson, FoundPerson
 from Api.serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
 
@@ -79,6 +79,13 @@ def Profile(request):
 
 class Fogortpaswd(APIView):
     permission_classes = [AllowAny]
+    # sent email to see if it exists in db
+    # if it exists create an otp then create an otp for the user and send the otp to user
+    # then now  do a post request for the otp to verify the otp
+    # if valid return true message then the frontend will use this to ether redirect you to a reset page or display an
+    # input for new password
+
+    # the new password will be the request body and then useed to update the password in the user model
 
     def post(self, request):
         email = request.data.get("email", "")
@@ -89,8 +96,35 @@ class Fogortpaswd(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response({"msg": "No user found with the provided email"}, status=status.HTTP_404_NOT_FOUND)
+        otp = Otp.objects.create(
+            created_for=user,
+            code=Otp.get_code()
+        )
+        otp_serializer = OtpSerializer(otp).data
 
-        serializer = CustomUserSerializer(user).data
-        return Response({"user": serializer})
+        return Response({"code": otp_serializer["code"]})
 
 
+class ChangePass(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        code = request.data.get("code", "")
+        if not code:
+            return Response({"msg": "No code entered"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            otp_instance = Otp.objects.get(code=code)
+        except Otp.DoesNotExist:
+            return Response({"msg": "Invalid or expired OTP code"}, status=status.HTTP_404_NOT_FOUND)
+
+        if otp_instance.is_valid():
+            # If the OTP is valid, you might proceed with the password change logic here
+            # For example, reset the password for the user associated with this OTP
+            # user = otp_instance.created_for
+            # user.set_password(new_password)
+            # user.save()
+
+            return Response({"msg": "Valid OTP. You can proceed with password change."})
+        else:
+            return Response({"msg": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
