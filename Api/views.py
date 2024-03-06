@@ -28,6 +28,7 @@ def Missing(request):
         persons = MissingPerson.objects.all()
 
         serialized_data = []
+        # print(request.user)
 
         for person in persons:
             data = MissingPersonSerializer(person).data

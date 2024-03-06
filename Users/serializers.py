@@ -13,7 +13,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'user_name', 'password')
+        fields = ('id', 'email', 'user_name', 'password')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -24,7 +24,19 @@ class CustomUserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    from rest_framework import serializers
+    def update(self, instance, validated_data):
+        instance.email = validated_data.get('email', instance.email)
+        instance.user_name = validated_data.get(
+            'user_name', instance.user_name)
+
+        # Update password if provided
+        password = validated_data.get('password')
+        if password:
+            instance.set_password(password)
+
+        # Save the updated instance
+        instance.save()
+        return instance
 
 
 class OtpSerializer(serializers.ModelSerializer):

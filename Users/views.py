@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import CustomUserSerializer, OtpSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import api_view,  permission_classes
 from rest_framework.response import Response
@@ -46,6 +46,28 @@ class CustomUserCreate(APIView):
                 json = serializer.data
                 return Response(json, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserUpdate(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+
+        try:
+            user_instance = User.objects.get(id=request.user.id)
+        except User.DoesNotExist:
+            return Response({"msg": "no user found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user_serializer = CustomUserSerializer(
+            data=request.data, instance=user_instance, partial=True)
+
+        if user_serializer.is_valid():
+            user_serializer.save()
+
+            return Response({"msg": "infromation changed successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg": "Invalid data", "errors": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BlacklistTokenUpdateView(APIView):
@@ -119,13 +141,11 @@ class VerifyOtp(APIView):
             return Response({"msg": "Invalid or expired OTP code"}, status=status.HTTP_404_NOT_FOUND)
 
         if otp_instance.is_valid():
-            # If the OTP is valid, you might proceed with the password change logic here
-            # For example, reset the password for the user associated with this OTP
-            # user = otp_instance.created_for
-            # user.set_password(new_password)
-            # user.save()
+            otp_serializer = OtpSerializer(otp_instance).data
+            user = User.objects.get(id=otp_serializer.get("created_for", {}))
+            user_serializer = CustomUserSerializer(user).data
 
-            return Response({"msg": "Valid OTP. You can proceed with password change."})
+            return Response({"msg": "Valid OTP. You can proceed with password change.", "user": user_serializer.get("id", "no email")})
         else:
             return Response({"msg": "Invalid or expired OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -133,7 +153,19 @@ class VerifyOtp(APIView):
 class ChangePasskey(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
-        passkey = request.data.get("pass", "")
-        
-        user = CustomUserSerializer(data=passkey)
+    def put(self, request, id):
+
+        try:
+            user_instance = User.objects.get(id=id)
+        except User.DoesNotExist:
+            return Response({"msg": "no user found"}, status=status.HTTP_404_NOT_FOUND)
+
+        user_serializer = CustomUserSerializer(
+            data=request.data, instance=user_instance, partial=True)
+
+        if user_serializer.is_valid():
+            user_serializer.save()
+
+            return Response({"msg": "password changed successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"msg": "Invalid data", "errors": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

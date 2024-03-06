@@ -1,6 +1,22 @@
 from django.urls import path
-from .views import CreateNote
+from .views import  Daily_Activity
+
+# get all people posted missing and found in a day and do a summary location sexget all people then generate reports
+# at 12 on daily basis
+# do the same in monthly and yearly
+# where do many people go missing
+# what sex has many people missing
+"""
+Daily Activity Report:
+Weekly/Monthly Activity Summary:
+Case Status Report:
+Face Recognition Performance Report:
+Geographical Distribution Report:
+User Activity Report:
+"""
+
+
 app_name = "Note"
 urlpatterns = [
-    path('notes/', CreateNote.as_view(), name="create_noter"),
+    path('reports/daily/', Daily_Activity.as_view(), name='daily_activity'),
 ]
