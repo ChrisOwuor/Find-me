@@ -57,7 +57,7 @@ class Otp(models.Model):
         User, on_delete=models.CASCADE, null=True)
     code = models.CharField(max_length=7)
     created_at = models.DateTimeField(default=timezone.now)
-    token = 12345
+    
 
     def is_valid(self):
         """get 10 mins otp"""
@@ -69,4 +69,6 @@ class Otp(models.Model):
 
     @classmethod
     def get_code(cls):
-        return cls.token
+        random_number = random.randint(10000, 99999)
+        return random_number
+        

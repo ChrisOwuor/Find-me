@@ -1,24 +1,82 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import  NoteSerializer
-from .models import Note
-from rest_framework.permissions import AllowAny
-# Create your views here.
-class CreateNote(APIView):
-    permission_classes = [AllowAny]
 
-    def post(self, request, format='json'):
-        serializer = NoteSerializer(data=request.data)
-        if serializer.is_valid():
-            note = serializer.save()
-            if note:
-                json = serializer.data
-                return Response(json, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
+
+"""
+Daily Activity Report:
+Weekly/Monthly Activity Summary:
+Case Status Report:
+Face Recognition Performance Report:
+Geographical Distribution Report:
+User Activity Report:
+"""
+
+
+class Daily_Activity(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self,request):
-        note = Note.objects.all()
-        serializer = NoteSerializer(note, many=True)
-        json = serializer.data
-        return Response(json, status=status.HTTP_302_FOUND)
+        persons = self.new_missing_persons()
+        return Response({"persons": persons})
+
+    @classmethod
+    def new_missing_persons(cls):
+        return 20
+
+    @classmethod
+    def new_found_persons(cls):
+        ...
+
+    @classmethod
+    def user_activity(cls):
+        ...
+
+    @classmethod
+    def case_status(cls):
+        ...
+
+    @classmethod
+    def model_perfomance(cls):
+        ...
+
+    @classmethod
+    def geographical_distribution(cls):
+        ...
+
+
+class Weekly_Activity(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self):
+        ...
+
+
+class Case_Status(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self):
+        ...
+
+
+class Model_Performance(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self):
+        ...
+
+
+class Geographical_Distribution(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self):
+        ...
+
+
+class User_Activity(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self):
+        ...

@@ -35,7 +35,7 @@ admin.site.register(User, UserAdminConfig)
 
 
 class OtpAdmin(admin.ModelAdmin):
-    list_display = ('created_for', 'code', 'created_at')
+    list_display = ('id', 'created_for', 'code', 'created_at')
     search_fields = ['created_for__email', 'code']
 
 
