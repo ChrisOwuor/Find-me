@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from Note.models import Note
+from .models import Case
 
-class NoteSerializer(serializers.ModelSerializer):
 
+class CaseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Note
-        fields = ("id","user","body")
+        model = Case
+        fields = ['case_number', 'missing_person', 'status', 'notes']

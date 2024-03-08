@@ -2,6 +2,9 @@
 
 from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import render
+
+from Note.models import Case
+from Note.serializers import CaseSerializer
 from .models import MissingPerson, FoundPerson
 import face_recognition
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -98,6 +101,8 @@ def Missing_Details(request, trackCode):
 # send a post request with the id and response include not found or found including pic name location
 
 # view to do the facial recognition part
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Find(request, pid):
@@ -158,6 +163,25 @@ def Add_Person(request):
     if request.method == 'POST':
         request.data['created_by'] = request.user.id
         serializer = MissingPersonSerializer(data=request.data)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
+            missing_person = serializer.save()
+
+            case_data = {'missing_person': missing_person.id}
+            case_serializer = CaseSerializer(data=case_data)
+
+            if case_serializer.is_valid():
+                new_case = case_serializer.save()
+
+                # Serialize the MissingPerson instance
+                missing_person_serializer = MissingPersonSerializer(
+                    missing_person).data
+
+                new_case_serializer = CaseSerializer(new_case).data
+
+                return Response({
+                    'missing_person': missing_person_serializer,
+                    'case': new_case_serializer
+                }, status=201)
+
+    return Response(serializer.errors, status=400)
