@@ -130,7 +130,6 @@ def Find(request, pid):
             fimage_encodings = face_recognition.face_encodings(fimage)
 
             if len(fimage_encodings) > 0:
-
                 results = face_recognition.compare_faces(
                     image_encodings[0], fimage_encodings)
                 if results[0]:
@@ -141,7 +140,6 @@ def Find(request, pid):
                 print(results)
 
         return Response({"matches": matches, "mps": data})
-
 
 # view to report a missing person to reported seen persons db
 @permission_classes([IsAuthenticated])
@@ -155,7 +153,7 @@ def Report_Person(request):
             return Response({"message": "thank you for successfully adding a missing person"}, status=201)
 
 
-# view to add missing person to missing person db
+# view to add missing person to missing person db and create them a case
 @parser_classes([MultiPartParser, FormParser])
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
