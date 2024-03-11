@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ChangePasskey, CustomUserCreate, BlacklistTokenUpdateView, Fogortpaswd, MyTokenObtainPairView, UserUpdate, VerifyOtp
+from .views import ChangePasskey, ChangePassword, CustomUserCreate, BlacklistTokenUpdateView, Fogortpaswd, MyTokenObtainPairView, UserUpdate, VerifyOtp
 
 from . import views
 from rest_framework_simplejwt.views import (
@@ -24,5 +24,9 @@ urlpatterns = [
          ChangePasskey.as_view(), name="change_passkey"),
     path("profile/user/update/",
          UserUpdate.as_view(), name="update_user_info"),
+    path("profile/user/update/password/",
+         ChangePassword.as_view(), name="update_user_password"),
 
 ]
+
+

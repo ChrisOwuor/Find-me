@@ -1,3 +1,6 @@
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import update_session_auth_hash
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import status
@@ -35,6 +38,8 @@ class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
 
 
+
+
 class CustomUserCreate(APIView):
     permission_classes = [AllowAny]
 
@@ -59,6 +64,9 @@ class UserUpdate(APIView):
         except User.DoesNotExist:
             return Response({"msg": "no user found"}, status=status.HTTP_404_NOT_FOUND)
 
+        if "password" in request.data:
+            return Response({"msg": "Password update not allowed"}, status=status.HTTP_400_BAD_REQUEST)
+
         user_serializer = CustomUserSerializer(
             data=request.data, instance=user_instance, partial=True)
 
@@ -68,6 +76,26 @@ class UserUpdate(APIView):
             return Response({"msg": "infromation changed successfully"}, status=status.HTTP_200_OK)
         else:
             return Response({"msg": "Invalid data", "errors": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ChangePassword(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        password = request.data.get('password')
+
+        # Check if the old password is correct
+        if not check_password(old_password, user.password):
+            return Response({'error': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Set the new password and update the session hash
+        user.set_password(password)
+        user.save()
+        update_session_auth_hash(request, user)
+
+        return Response({'message': 'Password updated successfully.'}, status=status.HTTP_200_OK)
 
 
 class BlacklistTokenUpdateView(APIView):
