@@ -1,10 +1,8 @@
 
 
 from rest_framework.decorators import api_view, permission_classes
-from django.shortcuts import render
-
-from Note.models import Case
-from Note.serializers import CaseSerializer
+from Statistics.models import Case
+from Statistics.serializers import CaseSerializer
 from .models import MissingPerson, FoundPerson
 import face_recognition
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -15,11 +13,6 @@ from .models import FoundPerson
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
-# view to render react frontend
-
-
-def catch_all(request):
-    return render(request, "index.html")
 
 
 # view to get all  missing persons
