@@ -14,9 +14,6 @@ Face Recognition Performance Report:
 Geographical Distribution Report:
 User Activity Report:
 """
-
-
-app_name = "Note"
 urlpatterns = [
     path('reports/daily/<int:y>/<int:m>/<int:d>/',
          Daily_Activity.as_view(), name='daily_activity'),

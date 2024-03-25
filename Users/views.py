@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from .models import Otp, User
 from Api.models import MissingPerson, FoundPerson
 from Api.serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
+from django.db.models import Q
 
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -36,8 +37,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
-
 
 
 class CustomUserCreate(APIView):
@@ -185,15 +184,24 @@ class ChangePasskey(APIView):
 
         try:
             user_instance = User.objects.get(id=id)
+
         except User.DoesNotExist:
             return Response({"msg": "no user found"}, status=status.HTTP_404_NOT_FOUND)
 
-        user_serializer = CustomUserSerializer(
-            data=request.data, instance=user_instance, partial=True)
+        try:
+            user_otp = Otp.objects.get(
+                Q(created_for=user_instance.id) & Q(code=request.data.get("code")))
 
-        if user_serializer.is_valid():
-            user_serializer.save()
+        except Otp.DoesNotExist:
+            return Response({"msg": "Invalid data"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response({"msg": "password changed successfully"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"msg": "Invalid data", "errors": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if user_otp:
+            user_serializer = CustomUserSerializer(
+                data=request.data, instance=user_instance, partial=True)
+
+            if user_serializer.is_valid():
+                user_serializer.save()
+
+                return Response({"msg": "password changed successfully"}, status=status.HTTP_200_OK)
+            else:
+                return Response({"msg": "Invalid data", "errors": user_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
