@@ -44,7 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     start_date = models.DateTimeField(default=timezone.now)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    u_id = models.UUIDField(editable=False)
+    u_id = models.UUIDField(editable=False, default=uuid.uuid4)
 
     objects = CustomAccountManager()
 

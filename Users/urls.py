@@ -5,10 +5,6 @@ from . import views
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
-
-from rest_framework_simplejwt.views import (
-    TokenRefreshView,
-)
 app_name = 'Users'
 
 urlpatterns = [
@@ -20,13 +16,12 @@ urlpatterns = [
     path("profile/", views.Profile, name="profile"),
     path("profile/forgot/passkey/", Fogortpaswd.as_view(), name="forgot_passkey"),
     path("profile/verify/passkey/", VerifyOtp.as_view(), name="verify_passkey"),
-    path("profile/change/passkey/<int:id>/",
+    path("profile/change/passkey/<str:id>/",
          ChangePasskey.as_view(), name="change_passkey"),
     path("profile/user/update/",
          UserUpdate.as_view(), name="update_user_info"),
     path("profile/user/update/password/",
          ChangePassword.as_view(), name="update_user_password"),
-
 ]
 
 

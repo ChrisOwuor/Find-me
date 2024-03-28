@@ -1,21 +1,20 @@
-
-
 from rest_framework.decorators import api_view, permission_classes
-from Statistics.models import Case
 from Statistics.serializers import CaseSerializer
-from .models import MissingPerson, FoundPerson
+from .models import MissingPerson, FoundPerson, MissingPersonLocation
 import face_recognition
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.response import Response
-from .serializers import MissingPersonSerializer, ReportedSeenPersonSerializer
+from .serializers import FoundPersonLocationSerializer, MissingPersonLocationSerializer, MissingPersonSerializer, ReportedSeenPersonSerializer
 from .models import MissingPerson
 from .models import FoundPerson
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework import status
 
 
 # view to get all  missing persons
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def Missing(request):
@@ -135,15 +134,75 @@ def Find(request, pid):
         return Response({"matches": matches, "mps": data})
 
 # view to report a missing person to reported seen persons db
+
+
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def Report_Person(request):
     if request.method == 'POST':
-        request.data['created_by'] = request.user.id
-        serializer = ReportedSeenPersonSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "thank you for successfully adding a missing person"}, status=201)
+        try:
+            # Extract data from the request
+            first_name = request.data.get('first_name')
+            middle_name = request.data.get('middle_name')
+            last_name = request.data.get('last_name')
+            eye_color = request.data.get('eye_color')
+            hair_color = request.data.get('hair_color')
+            age = request.data.get('age')
+            description = request.data.get('description')
+            gender = request.data.get('gender')
+            nick_name = request.data.get('nick_name')
+            image = request.data.get('image')
+
+            # Prepare data for serialization
+            found_person_data = {
+                'first_name': first_name,
+                'middle_name': middle_name,
+                'last_name': last_name,
+                'eye_color': eye_color,
+                'hair_color': hair_color,
+                'age': age,
+                'description': description,
+                'nick_name': nick_name,
+                'image': image,
+                'gender': gender,
+                'created_by': request.user.id
+            }
+
+            # Serialize found person data
+            serializer = ReportedSeenPersonSerializer(data=found_person_data)
+            if serializer.is_valid():
+                found_person = serializer.save()
+
+                # Extract location data
+                county = request.data.get('county')
+                name = request.data.get('name')
+                latitude = request.data.get('latitude')
+                longitude = request.data.get('longitude')
+                time_found = request.data.get('time_found')
+
+                # Prepare location data for serialization
+                found_person_location_data = {
+                    'county': county,
+                    'name': name,
+                    'latitude': latitude,
+                    'longitude': longitude,
+                    'time_found': time_found,
+                    'found_person': found_person.id
+                }
+
+                # Serialize location data
+                seen_person_serializer = FoundPersonLocationSerializer(
+                    data=found_person_location_data)
+                if seen_person_serializer.is_valid():
+                    seen_person_serializer.save()
+                    return Response({"message": "Thank you for successfully adding a missing person"}, status=status.HTTP_201_CREATED)
+                else:
+                    return Response({"error": "Failed to add location data", "details": seen_person_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Failed to add found person data", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"error": "An unexpected error occurred", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # view to add missing person to missing person db and create them a case
@@ -152,27 +211,53 @@ def Report_Person(request):
 @api_view(['POST'])
 def Add_Person(request):
     if request.method == 'POST':
-        request.data['created_by'] = request.user.id
-        serializer = MissingPersonSerializer(data=request.data)
+        try:
+            missing_person_data = {}
+            for field in MissingPerson._meta.fields:
+                field_name = field.name
+                if field_name in request.data:
+                    missing_person_data[field_name] = request.data[field_name]
 
-        if serializer.is_valid():
-            missing_person = serializer.save()
+            # Set the 'created_by' field to the current user
+            missing_person_data['created_by'] = request.user.id
 
-            case_data = {'missing_person': missing_person.id}
-            case_serializer = CaseSerializer(data=case_data)
+            # Save the missing person
+            missing_person_serializer = MissingPersonSerializer(
+                data=missing_person_data)
+            if missing_person_serializer.is_valid():
+                missing_person = missing_person_serializer.save()
 
-            if case_serializer.is_valid():
-                new_case = case_serializer.save()
+                # Create a case for the missing person
+                case_data = {'missing_person': missing_person.id}
+                case_serializer = CaseSerializer(data=case_data)
 
-                # Serialize the MissingPerson instance
-                missing_person_serializer = MissingPersonSerializer(
-                    missing_person).data
+                if case_serializer.is_valid():
+                    new_case = case_serializer.save()
 
-                new_case_serializer = CaseSerializer(new_case).data
+                    # Add location details for the missing person
+                    location_data = {}
+                    for field in MissingPersonLocation._meta.fields:
+                        field_name = field.name
+                        if field_name in request.data:
+                            location_data[field_name] = request.data[field_name]
 
-                return Response({
-                    'missing_person': missing_person_serializer,
-                    'case': new_case_serializer
-                }, status=201)
+                    # Set the missing person for the location
+                    location_data['missing_person'] = missing_person.id
 
-    return Response(serializer.errors, status=400)
+                    # Save the location details
+                    location_serializer = MissingPersonLocationSerializer(
+                        data=location_data)
+                    if location_serializer.is_valid():
+                        location_serializer.save()
+                    else:
+                        return Response({"error": "Failed to add location details", "details": location_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"error": "Failed to create a case", "details": case_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Failed to add missing person", "details": missing_person_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({"message": "Missing person added successfully"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": "An unexpected error occurred", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({"error": "Invalid request method"}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
