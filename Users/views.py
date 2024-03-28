@@ -180,10 +180,10 @@ class VerifyOtp(APIView):
 class ChangePasskey(APIView):
     permission_classes = [AllowAny]
 
-    def put(self, request, id):
+    def put(self, request, u_id):
 
         try:
-            user_instance = User.objects.get(id=id)
+            user_instance = User.objects.get(u_id=u_id)
 
         except User.DoesNotExist:
             return Response({"msg": "no user found"}, status=status.HTTP_404_NOT_FOUND)

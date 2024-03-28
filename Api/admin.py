@@ -1,47 +1,32 @@
 
-# Register your models here.
-
+from .models import MissingPerson, MissingPersonLocation, FoundPerson, FoundPersonLocation
 from django.contrib.auth.models import Group
+
 from django.contrib import admin
-from .models import MissingPerson, FoundPerson
 
 
-class PersonAdmin(admin.ModelAdmin):
-    list_display = ("id","trackCode", "created_by", "first_name",
-                    "middle_name",
-                    "nick_name",
-                    "last_name",
-                    "county",
-                    "last_seen",
-                    "eye_color",
-                    "hair_color",
-                    "age",
-                    "location",
-                    "image",
-                    "gender",
-                    "created_at",
-                    "updated_at")
-
-
+@admin.register(FoundPerson)
 class FoundPersonAdmin(admin.ModelAdmin):
-    list_display = ("id", "created_by", "first_name",
-                    "middle_name",
-                    "last_name",
-                    "county",
-                    "last_seen",
-                    "eye_color",
-                    "hair_color",
-                    "age",
-                    "location",
-                    "image",
-                    "gender", "created_at",
-                    "updated_at")
+    list_display = ('first_name', 'last_name', 'age', 'created_at')
+    search_fields = ('first_name', 'last_name', 'description')
 
 
+@admin.register(FoundPersonLocation)
+class FoundPersonLocationAdmin(admin.ModelAdmin):
+    list_display = ('county', 'name', 'time_found')
+    search_fields = ('county', 'name')
 
 
-admin.site.register(MissingPerson, PersonAdmin)
-admin.site.register(FoundPerson, FoundPersonAdmin)
+@admin.register(MissingPerson)
+class MissingPersonAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'age', 'created_at')
+    search_fields = ('first_name', 'last_name', 'description')
 
-# Deregister the Group model from the admin site
+
+@admin.register(MissingPersonLocation)
+class MissingPersonLocationAdmin(admin.ModelAdmin):
+    list_display = ('county', 'name', 'time_seen')
+    search_fields = ('county', 'name')
+
+
 admin.site.unregister(Group)
